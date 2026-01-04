@@ -471,11 +471,11 @@ const GoffeeCoffeeApp = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
             <div>
               <MapPin className="w-5 h-5 mx-auto mb-2" />
-              <p>Yangon, Myanmar</p>
+              <p>Mandalay, Myanmar</p>
             </div>
             <div>
               <Phone className="w-5 h-5 mx-auto mb-2" />
-              <p>+95 9 XXX XXX XXX</p>
+              <p>09981249663</p>
             </div>
             <div>
               <Clock className="w-5 h-5 mx-auto mb-2" />
