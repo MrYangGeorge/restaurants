@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   ShoppingCart,
   Plus,
@@ -14,6 +14,13 @@ import {
 } from "lucide-react";
 
 const GoffeeCoffeeApp = () => {
+  
+  useEffect(() => {
+  fetch(`${import.meta.env.VITE_API_BASE_URL}/health`)
+    .then(res => res.json())
+    .then(data => console.log("Backend health:", data))
+    .catch(err => console.error("Backend error:", err));
+}, []);
   type CartItem = any;
   const [cart, setCart] = useState<CartItem[]>([]);
   const [showCart, setShowCart] = useState(false);
@@ -21,9 +28,61 @@ const GoffeeCoffeeApp = () => {
   const [customerName, setCustomerName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [orderType, setOrderType] = useState("dine-in");
-  const [pickupTime, setPickupTime] = useState("");
+  // const [pickupTime, setPickupTime] = useState("");
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
   const [specialInstructions, setSpecialInstructions] = useState("");
+  
+  const placeOrder = async () => {
+  if (!customerName || !phoneNumber) {
+    alert("Please enter your name and phone number");
+    return;
+  }
+
+  if (cart.length === 0) {
+    alert("Your cart is empty");
+    return;
+  }
+
+  const total = cart.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
+
+  const response = await fetch(
+    `${import.meta.env.VITE_API_BASE_URL}/order`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        customerName,
+        phoneNumber,
+        orderType,
+        // pickupTime: orderType === "pickup" ? pickupTime : null,
+        items: cart,
+        total,
+      }),
+    }
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    alert(data.error || "Order failed");
+    return;
+  }
+
+  console.log("Order created:", data.orderId);
+
+  setOrderPlaced(true);
+  setShowCart(false);
+  setCart([]);
+  setCustomerName("");
+  setPhoneNumber("");
+  // setPickupTime("");
+};
+
 
   const menu = [
     {
@@ -258,22 +317,6 @@ const GoffeeCoffeeApp = () => {
     );
   };
 
-  const placeOrder = () => {
-    if (customerName.trim() && phoneNumber.trim()) {
-      if (orderType === "pickup" && !pickupTime.trim()) return;
-
-      setOrderPlaced(true);
-      setTimeout(() => {
-        setOrderPlaced(false);
-        setCart([]);
-        setCustomerName("");
-        setPhoneNumber("");
-        setPickupTime("");
-        setShowCart(false);
-      }, 4000);
-    }
-  };
-
   if (orderPlaced) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center p-4">
@@ -288,9 +331,9 @@ const GoffeeCoffeeApp = () => {
             ORDER CONFIRMED
           </h2>
           <p className="text-gray-600 mb-4">Thank you, {customerName}</p>
-          {orderType === "pickup" && (
+          {/*orderType === "pickup" && (
             <p className="text-lg">Pickup Time: {pickupTime}</p>
-          )}
+          )*/}
 
           <p className="text-sm text-gray-500 mt-4">
             Your order will be ready soon
@@ -524,7 +567,7 @@ const GoffeeCoffeeApp = () => {
                   />
                 </div>
               )}
-              {orderType === "pickup" && (
+              {/*orderType === "pickup" && (
                 <input
                   type="time"
                   placeholder="Pickup Time *"
@@ -532,7 +575,7 @@ const GoffeeCoffeeApp = () => {
                   onChange={(e) => setPickupTime(e.target.value)}
                   className="w-full p-3 border border-gray-300 bg-white text-black rounded-xl focus:border-black focus:outline-none placeholder-gray-400"
                 />
-              )}
+              )*/}
             </div>
 
             {cart.length > 0 && (
@@ -552,8 +595,8 @@ const GoffeeCoffeeApp = () => {
                   onClick={placeOrder}
                   disabled={
                     !customerName.trim() ||
-                    !phoneNumber.trim() ||
-                    (orderType === "pickup" && !pickupTime.trim())
+                    !phoneNumber.trim() 
+                    // || (orderType === "pickup" && !pickupTime.trim())
                   }
                   className="w-full bg-black hover:bg-gray-800 disabled:bg-gray-300 disabled:text-gray-500 text-white font-bold py-4 rounded-xl transition shadow-lg disabled:cursor-not-allowed"
                 >
